@@ -1,5 +1,8 @@
-## gxccd
+# gxccd
 Rust wrapper around [`gxccd`](https://www.gxccd.com/) C library.
+
+## Contributing
+This repository is incomplete, and not all C functions have been wrapped in a rust function - though this is the eventual goal. Initially, I have wrapped the functions that I wish to use, myself, but if there are functions you require which have not yet been wrapped, please raise an Issue, or implement the wrappers yourself and make a Pull Request.
 
 ## Dependencies
 ### `libgxccd`
