@@ -1,64 +1,60 @@
 use gxccd::*;
 
 fn main() -> Result<(), String> {
-    // Enumerate USB cameras
-    let id = enumerate_usb()?;
-    eprintln!("{}", id);
+    let camera = Camera::new()?;
 
-    let camera = initialize_usb(id);
-
-    let param = get_string_parameter(camera, StringParams::CameraDescription)?;
+    let param = camera.get_string_parameter(StringParams::CameraDescription)?;
     eprintln!("Camera description: {}", param);
 
-    let major = get_integer_parameter(camera, IntegerParams::FirmwareMajor)?;
-    let minor = get_integer_parameter(camera, IntegerParams::FirmwareMinor)?;
-    let build = get_integer_parameter(camera, IntegerParams::FirmwareBuild)?;
+    let major = camera.get_integer_parameter(IntegerParams::FirmwareMajor)?;
+    let minor = camera.get_integer_parameter(IntegerParams::FirmwareMinor)?;
+    let build = camera.get_integer_parameter(IntegerParams::FirmwareBuild)?;
     eprintln!("Camera FW version: {}.{}.{}", major, minor, build);
 
-    let temp = get_value(camera, Values::ChipTemperature)?;
+    let temp = camera.get_value(Values::ChipTemperature)?;
     eprintln!("Camera chip temp: {:0.2} °C", temp);
 
-    let voltage = get_value(camera, Values::SupplyVoltage)?;
+    let voltage = camera.get_value(Values::SupplyVoltage)?;
     eprintln!("Camera supply voltage: {:0.2} V", voltage);
     
     let mut i = 0;
-    while let Ok(result) = enumerate_read_modes(camera, i) {
+    while let Ok(result) = camera.enumerate_read_modes(i) {
         eprintln!("Read mode #{}: {}", i, result);
         i += 1;
     }
 
     eprintln!("taking dark frames");
-    set_read_mode(camera, 3)?;
+    camera.set_read_mode(3)?;
     let exp_time: f64 = 2.0;
     for i in 0..10 {
         eprintln!("taking frame {}", i);
-        let primary_hdu = take_full_frame(camera, &exp_time, false)?;
+        let primary_hdu = take_full_frame(&camera, &exp_time, false)?;
         fitrs::Fits::create(format!("./dark_{:03}.fits",i), primary_hdu).map_err(|e| e.to_string())?;
     }    
     eprintln!("taking light frames");
-    set_read_mode(camera, 3)?;
+    camera.set_read_mode(3)?;
     let exp_time: f64 = 2.0;
     for i in 0..10 {
         eprintln!("taking frame {}", i);
-        let primary_hdu = take_full_frame(camera, &exp_time, true)?;
+        let primary_hdu = take_full_frame(&camera, &exp_time, true)?;
         fitrs::Fits::create(format!("./light_{:03}.fits",i), primary_hdu).map_err(|e| e.to_string())?;
     }    
     Ok(())
 }
 
-fn take_full_frame(camera: *mut Camera, exp_time: &f64, light: bool) -> Result<fitrs::Hdu, String> {
+fn take_full_frame(camera: &Camera, exp_time: &f64, light: bool) -> Result<fitrs::Hdu, String> {
     // start exposure
-    let chip_w = get_integer_parameter(camera, IntegerParams::ChipW)?;
-    let chip_d = get_integer_parameter(camera, IntegerParams::ChipD)?;
+    let chip_w = camera.get_integer_parameter(IntegerParams::ChipW)?;
+    let chip_d = camera.get_integer_parameter(IntegerParams::ChipD)?;
     
-    start_exposure(camera, *exp_time, light, 0, 0, chip_w, chip_d)?;
+    camera.start_exposure(*exp_time, light, 0, 0, chip_w, chip_d)?;
     // sleep during exposure
     std::thread::sleep(std::time::Duration::from_secs_f64(*exp_time));
 
-    while !(image_ready(camera)?) {};
+    while !(camera.image_ready()?) {};
 
     let mut buf = vec![0u8;(chip_d*chip_w*2) as usize];
-    read_image(camera, &mut buf)?;
+    camera.read_image(&mut buf)?;
     let mut data = vec![0u32; buf.len()/2];
     for i in 0..buf.len()/2 {
         data[i] = buf[2*i] as u32 + buf[2*i+1] as u32 * 256;
