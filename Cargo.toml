@@ -2,6 +2,11 @@
 name = "gxccd"
 version = "0.1.0"
 edition = "2021"
+description = "Rust wrapper around gxccd C library"
+license = "MIT"
+authors = ["Jesse Cranney <jesse.cranney@anu.edu.au>"]
+readme = "README.md"
+repository = "https://github.com/jcranney/gxccd-wrap"
 
 [package.metadata]
 include = ["lib/*"]
