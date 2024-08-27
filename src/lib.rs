@@ -45,91 +45,91 @@ pub struct Camera {
 /// Standard gxccd_get_boolean_parameter() indexes
 #[derive(Debug)]
 pub enum BooleanParams {
-    CONNECTED = 0,              // true if camera currently connected
-    SUB_FRAME,                  // true if camera supports sub-frame read
-    READ_MODES,                 // true if camera supports multiple read modes
-    SHUTTER,                    // true if camera is equipped with mechanical shutter
-    COOLER,                     // true if camera is equipped with active chip cooler
-    FAN,                        // true if camera fan can be controlled
-    FILTERS,                    // true if camera controls filter wheel
-    GUIDE,                      // true if camera is capable to guide the telescope mount
-    WINDOW_HEATING,             // true if camera can control the chip window heating
-    PREFLASH,                   // true if camera can use chip preflash
-    ASYMMETRIC_BINNING,         // true if camera horizontal and vertical binning can differ
-    MICROMETER_FILTER_OFFSETS,  // true if filter focusing offsets are expressed in micrometers
-    POWER_UTILIZATION,          // true if camera can return power utilization in gxccd_get_value()
-    GAIN,                       // true if camera can return gain in gxccd_get_value()
-    ELECTRONIC_SHUTTER,         // true if camera has electronic shutter
+    Connected = 0,              // true if camera currently connected
+    SubFrame,                  // true if camera supports sub-frame read
+    ReadModes,                 // true if camera supports multiple read modes
+    Shutter,                    // true if camera is equipped with mechanical shutter
+    Cooler,                     // true if camera is equipped with active chip cooler
+    Fan,                        // true if camera fan can be controlled
+    Filters,                    // true if camera controls filter wheel
+    Guide,                      // true if camera is capable to guide the telescope mount
+    WindowHeating,             // true if camera can control the chip window heating
+    Preflash,                   // true if camera can use chip preflash
+    AsymmetricBinning,         // true if camera horizontal and vertical binning can differ
+    MicrometerFilterOffsets,  // true if filter focusing offsets are expressed in micrometers
+    PowerUtilization,          // true if camera can return power utilization in gxccd_get_value()
+    Gain,                       // true if camera can return gain in gxccd_get_value()
+    ElectronicShutter,         // true if camera has electronic shutter
     GPS,                        // true if camera has gps module
-    CONTINUOUS_EXPOSURES,       // true if camera supports continuous exposures
-    TRIGGER,                    // true if camera supports trigger port
-    CONFIGURED = 127,           // true if camera is configured
+    ContinuousExposures,       // true if camera supports continuous exposures
+    Trigger,                    // true if camera supports trigger port
+    Configured = 127,           // true if camera is configured
     RGB,                        // true if camera has Bayer RGBG filters on the chip
     CMY,                        // true if camera has CMY filters on the chip
     CMYG,                       // true if camera has CMYG filters on the chip
-    DEBAYER_X_ODD,              // true if camera Bayer masks starts on horizontal odd pixel
-    DEBAYER_Y_ODD,              // true if camera Bayer masks starts on vertical odd pixel
-    INTERLACED = 256,           // true if chip is interlaced (else progressive)
-    HEX_VERSION_NUMBER = 1024   // true if GIP_FIRMWARE_MAJOR should be represented as hexadecimal number
+    DebayerXOdd,              // true if camera Bayer masks starts on horizontal odd pixel
+    DebayerYOdd,              // true if camera Bayer masks starts on vertical odd pixel
+    Interlaced = 256,           // true if chip is interlaced (else progressive)
+    HexVersionNumber = 1024   // true if GIP_FIRMWARE_MAJOR should be represented as hexadecimal number
 }
 
 /// Standard gxccd_get_integer_parameter() indexes
 #[derive(Debug)]
 pub enum IntegerParams {
-    CAMERA_ID = 0,          // Identifier of the current camera
-    CHIP_W,                 // Chip width in pixels
-    CHIP_D,                 // Chip depth in pixels
-    PIXEL_W,                // Chip pixel width in nanometers
-    PIXEL_D,                // Chip pixel depth in nanometers
-    MAX_BINNING_X,          // Maximum binning in horizontal direction
-    MAX_BINNING_Y,          // Maximum binning in vertical direction
-    READ_MODES,             // Number of read modes offered by the camera
-    FILTERS,                // Number of filters offered by the camera
-    MINIMAL_EXPOSURE,       // Shortest exposure time in microseconds (µs)
-    MAXIMAL_EXPOSURE,       // Longest exposure time in milliseconds (ms)
-    MAXIMAL_MOVE_TIME,      // Longest time to move the telescope in milliseconds (ms)
-    DEFAULT_READ_MODE,      // Read mode to be used as default
-    PREVIEW_READ_MODE,      // Read mode to be used for preview (fast read)
-    MAX_WINDOW_HEATING,     // Maximal value for gxccd_set_window_heating()
-    MAX_FAN,                // Maximal value for gxccd_set_fan()
-    MAX_GAIN,               // Maximal value for gxccd_set_gain()
-    MAX_PIXEL_VALUE,        // Maximal possible pixel value. May vary with read mode and binning,
+    CameraId = 0,          // Identifier of the current camera
+    ChipW,                 // Chip width in pixels
+    ChipD,                 // Chip depth in pixels
+    PixelW,                // Chip pixel width in nanometers
+    PixelD,                // Chip pixel depth in nanometers
+    MaxBinningX,          // Maximum binning in horizontal direction
+    MaxBinningY,          // Maximum binning in vertical direction
+    ReadModes,             // Number of read modes offered by the camera
+    Filters,                // Number of filters offered by the camera
+    MinimalExposure,       // Shortest exposure time in microseconds (µs)
+    MaximalExposure,       // Longest exposure time in milliseconds (ms)
+    MaximalMoveTime,      // Longest time to move the telescope in milliseconds (ms)
+    DefaultReadMode,      // Read mode to be used as default
+    PreviewReadMode,      // Read mode to be used for preview (fast read)
+    MaxWindowHeating,     // Maximal value for gxccd_set_window_heating()
+    MaxFan,                // Maximal value for gxccd_set_fan()
+    MaxGain,               // Maximal value for gxccd_set_gain()
+    MaxPixelValue,        // Maximal possible pixel value. May vary with read mode and binning,
                                 // read only after gxccd_set_read_mode() and gxccd_set_binning() calls
-    FIRMWARE_MAJOR = 128,   // Camera firmware version (optional)
-    FIRMWARE_MINOR,
-    FIRMWARE_BUILD,
-    DRIVER_MAJOR,           // This library version
-    DRIVER_MINOR,
-    DRIVER_BUILD,
-    FLASH_MAJOR,            // Flash version (optional)
-    FLASH_MINOR,
-    FLASH_BUILD,
+    FirmwareMajor = 128,   // Camera firmware version (optional)
+    FirmwareMinor,
+    FirmwareBuild,
+    DriverMajor,           // This library version
+    DriverMinor,
+    DriverBuild,
+    FlashMajor,            // Flash version (optional)
+    FlashMinor,
+    FlashBuild,
 }
 
 
 /// Standard gxccd_get_string_parameter() indexes 
 #[derive(Debug)]
 pub enum StringParams {
-    CAMERA_DESCRIPTION = 0, // Camera description 
-    MANUFACTURER,           // Manufacturer name 
-    CAMERA_SERIAL,          // Camera serial number 
-    CHIP_DESCRIPTION        // Used chip description 
+    CameraDescription = 0, // Camera description 
+    Manufacturer,           // Manufacturer name 
+    CameraSerial,          // Camera serial number 
+    ChipDescription        // Used chip description 
 }
 
 /// Standard gxccd_get_value() indexes
 #[derive(Debug)]
 pub enum Values {
-    CHIP_TEMPERATURE = 0,     // Current temperature of the chip in deg. Celsius
-    HOT_TEMPERATURE,          // Current temperature of the cooler hot side
+    ChipTemperature = 0,     // Current temperature of the chip in deg. Celsius
+    HotTemperature,          // Current temperature of the cooler hot side
                               // in deg. Celsius
-    CAMERA_TEMPERATURE,       // Current temperature inside the camera
+    CameraTemperature,       // Current temperature inside the camera
                               // in deg. Celsius
-    ENVIRONMENT_TEMPERATURE,  // Current temperature of the environment air
+    EnvironmentTemperature,  // Current temperature of the environment air
                               // in deg. Celsius
-    SUPPLY_VOLTAGE = 10,      // Current voltage of the camera power supply
-    POWER_UTILIZATION,        // Current utilization of the chip cooler
+    SupplyVoltage = 10,      // Current voltage of the camera power supply
+    PowerUtilization,        // Current utilization of the chip cooler
                               // (rational number from 0.0 to 1.0)
-    ADC_GAIN = 20             // Current gain of A/D converter in electrons/ADU
+    ADCGain = 20             // Current gain of A/D converter in electrons/ADU
 }
 
 extern "C" {
@@ -495,7 +495,7 @@ pub fn get_boolean_parameter(camera: *mut Camera, param: BooleanParams) -> Resul
         if let 0 = gxccd_get_boolean_parameter(camera, param as c_int, &mut value) {
             Ok(value)
         } else {
-            Err(format!("Failed to retrieve integer parameter"))
+            Err("Failed to retrieve integer parameter".to_string())
         }
     }
 }
@@ -506,7 +506,7 @@ pub fn get_integer_parameter(camera: *mut Camera, param: IntegerParams) -> Resul
         if let 0 = gxccd_get_integer_parameter(camera, param as c_int, &mut value) {
             Ok(value)
         } else {
-            Err(format!("Failed to retrieve integer parameter"))
+            Err("Failed to retrieve integer parameter".to_string())
         }
     }
 }
