@@ -1,5 +1,5 @@
 [package]
-name = "moravian_camera"
+name = "gxccd"
 version = "0.1.0"
 edition = "2021"
 

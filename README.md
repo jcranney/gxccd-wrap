@@ -1,9 +1,9 @@
 ## gxccd
-Wrapper around `gxccd` C library.
+Rust wrapper around [`gxccd`](https://www.gxccd.com/) C library.
 
 ## Dependencies
 ### `libgxccd`
-This crate is a wrapper around the [gxccd](https://www.gxccd.com/) C library provided by Moravian Instruments, and as such, redistributes the original library in binary form without modification, as permitted by the `libgxccd` license reproduced here:
+This crate is a wrapper around the [gxccd](https://www.gxccd.com/) C library provided by Moravian Instruments, and as such, redistributes the original library in binary form (`./lib/libgxccd.a`) without modification, as permitted by the `libgxccd` license (reproduced here):
 ```license
 The Moravian Instruments (MI) camera library.
  
@@ -36,3 +36,4 @@ TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 ```
+This repository is not supported by - or related to - Moravian Instruments in any way, and all of the code in this library is covered by the (more permissive) MIT license (see `./LICENSE`). If you wish to use the source code contained within this library, you need only satisfy the MIT license conditions, but if you include the Moravian Instruments binaries in `./lib/*` in any future redistributions, you must also satisfy the license copied above regarding the *redistribution and use in binary form*.

@@ -1,6 +1,6 @@
-use moravian_camera::*;
+use gxccd::*;
 
-fn main() -> Result<(),String> {
+fn main() -> Result<(), String> {
     // Enumerate USB cameras
     let id = enumerate_usb()?;
     eprintln!("{}", id);
