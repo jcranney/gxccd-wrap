@@ -2,11 +2,31 @@
 Rust wrapper around [`gxccd`](https://www.gxccd.com/) C library.
 
 ## Contributing
-This repository is incomplete, and not all C functions have been wrapped in a rust function - though this is the eventual goal. Initially, I have wrapped the functions that I wish to use, myself, but if there are functions you require which have not yet been wrapped, please raise an Issue, or implement the wrappers yourself and make a Pull Request.
+This repository is incomplete. All "advanced" features of the original library have been left out as they are unsupported. All other functions have been wrapped, but not all have been tested, though this is the goal. Idiomatic rust testing is complicated by the necessity of a connected camera, and by the opacity of the original library.
+
+## Setup
+```bash
+git clone https://github.com/jcranney/gxccd-wrap
+cd gxccd-wrap
+cargo build --release
+```
+This will build the main `gxccd` rust program, which connects to a camera, prints some states of the camera, and saves some dark and light images to disk. Obviously this will fail if you do not have a camera connected, but it should fail cleanly with the message:
+```
+$ gxccd
+Error: "Cannot find USB camera"
+```
+If you get some other large output regarding libraries, you probably need to configure your [dependencies](#dependencies). If you get something else entirely, please raise an issue.
+
 
 ## Dependencies
+### `libusb-1.0`
+This is a readily available library required by the `libgxccd` library. If you don't already have it, you can install it by (e.g.):
+```bash
+apt-get install libusb-1.0-0-dev
+```
+
 ### `libgxccd`
-This crate is a wrapper around the [gxccd](https://www.gxccd.com/) C library provided by Moravian Instruments, and as such, redistributes the original library in binary form (`./lib/libgxccd.a`) without modification, as permitted by the `libgxccd` license (reproduced here):
+This crate is packaged with a copy of the original [gxccd](https://www.gxccd.com/) C library binary available from Moravian Instruments. This is permitted by the `libgxccd` license (reproduced here below). For now, only the *x86_64 Linux (64-bit)* binaries are shipped with this crate, but you can replace them with the version matching your machine by replacing `./lib/libgxccd.a` with the same file for your machine, downloaded from the [Moravian Instruments download page](https://www.gxccd.com/cat?id=156). If this doesn't work for you, let me know by raising an issue.
 ```license
 The Moravian Instruments (MI) camera library.
  

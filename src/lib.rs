@@ -2,6 +2,7 @@ extern crate libc;
 use libc::{c_char, c_double, c_float, c_int, c_uint, c_void, size_t};
 use std::ffi::CStr;
 use std::path::PathBuf;
+use std::str::FromStr;
 use std::sync::Mutex;
 
 /*
@@ -417,12 +418,29 @@ pub fn close_shutter(camera: *mut Camera) -> Result<(), String> {
 
 /// Sets global path to your configuration .ini file.
 /// You can pass NULL or empty string to use lookup process described above.
-pub fn configure(ini_path: Option<PathBuf>) { todo!() }
+pub fn configure(ini_path: Option<PathBuf>) -> Result<PathBuf,String> {
+    let mut buf: Vec<c_char>;
+    match ini_path {
+        Some(path) => buf = path.display().to_string().chars().map(|x| x as i8).collect(),
+        None => buf = vec![],
+    }
+    let out: PathBuf;
+    unsafe {
+        gxccd_configure(buf.as_mut_ptr());
+        out = PathBuf::from_str(CStr::from_ptr(buf.as_ptr()).to_str().unwrap()).unwrap()
+    }
+    Ok(out)
+}
 
 /// Configures ip address and/or port of ethernet adapter.
 /// To configure port only, pass NULL or empty string in "ip".
 /// To configure ip address only, pass 0 in "port".
-pub fn configure_eth(ip: &str, port: u16) { todo!() }
+pub fn configure_eth(ip: &str, port: u16) {
+    unsafe {
+        let mip = ip.to_string().as_mut_ptr().cast::<i8>();
+        gxccd_configure_eth(mip, port);
+    }
+}
 
 /// Enumerates all cameras currently connected to your computer (_usb) or the
 /// ethernet adapter (_eth).
@@ -468,11 +486,11 @@ pub fn enumerate_eth() -> Result<i32, String> {
 /// function) and is required. If you have one camera connected, you can pass -1
 /// as "camera_id".
 ///USB variant 
-pub fn initialize_usb(camera_id: c_int) -> *mut Camera {
+pub fn initialize_usb(camera_id: i32) -> *mut Camera {
     unsafe { gxccd_initialize_usb(camera_id) }
 }
 ///Ethernet variant 
-pub fn initialize_eth(camera_id: c_int) -> *mut Camera {
+pub fn initialize_eth(camera_id: i32) -> *mut Camera {
     unsafe { gxccd_initialize_eth(camera_id) }
 }
 
@@ -492,7 +510,7 @@ pub fn release(camera: &mut Camera) {
 pub fn get_boolean_parameter(camera: *mut Camera, param: BooleanParams) -> Result<bool, String> {
     let mut value: bool = false;
     unsafe {
-        if let 0 = gxccd_get_boolean_parameter(camera, param as c_int, &mut value) {
+        if 0 == gxccd_get_boolean_parameter(camera, param as c_int, &mut value) {
             Ok(value)
         } else {
             Err("Failed to retrieve integer parameter".to_string())
@@ -503,7 +521,7 @@ pub fn get_boolean_parameter(camera: *mut Camera, param: BooleanParams) -> Resul
 pub fn get_integer_parameter(camera: *mut Camera, param: IntegerParams) -> Result<i32, String> {
     let mut value: c_int = 0;
     unsafe {
-        if let 0 = gxccd_get_integer_parameter(camera, param as c_int, &mut value) {
+        if 0 == gxccd_get_integer_parameter(camera, param as c_int, &mut value) {
             Ok(value)
         } else {
             Err("Failed to retrieve integer parameter".to_string())
@@ -514,7 +532,7 @@ pub fn get_integer_parameter(camera: *mut Camera, param: IntegerParams) -> Resul
 pub fn get_string_parameter(camera: *mut Camera, param: StringParams) -> Result<String, String> {
     let mut buf = vec![0 as c_char; 256];
     unsafe {
-        if let 0 = gxccd_get_string_parameter(camera, param as c_int, buf.as_mut_ptr(), buf.len()) {
+        if 0 == gxccd_get_string_parameter(camera, param as c_int, buf.as_mut_ptr(), buf.len()) {
             Ok(CStr::from_ptr(buf.as_ptr()).to_string_lossy().into_owned())
         } else {
             Err("Failed to retrieve string parameter".into())
@@ -526,7 +544,7 @@ pub fn get_string_parameter(camera: *mut Camera, param: StringParams) -> Result<
 pub fn get_value(camera: *mut Camera, param: Values) -> Result<f32, String> {
     let mut value: c_float = 0.0;
     unsafe {
-        if let 0 = gxccd_get_value(camera, param as c_int, &mut value) {
+        if 0 == gxccd_get_value(camera, param as c_int, &mut value) {
             Ok(value)
         } else {
             Err("Failed to retrieve value".to_string())
@@ -537,16 +555,40 @@ pub fn get_value(camera: *mut Camera, param: Values) -> Result<f32, String> {
 /// Sets the required chip temperature.
 /// If the camera has no cooler, this function has no effect.
 /// "temp" is expressed in degrees Celsius.
-pub fn set_temperature(camera: *mut Camera, temp: f32) -> Result<(), String> { todo!() }
+pub fn set_temperature(camera: *mut Camera, temp: f32) -> Result<(), String> {
+    unsafe {
+        if 0 == gxccd_set_temperature(camera, temp) {
+            Ok(())
+        } else {
+            Err("Failed to set temperature".to_string())
+        }
+    }
+}
 
 /// Sets the maximum speed with which the driver changes chip temperature.
 /// If the camera has no cooler, this function has no effect.
 /// "temp_ramp" is expressed in degrees Celsius per minute.
-pub fn set_temperature_ramp(camera: *mut Camera, temp_ramp: f32) -> Result<(), String> { todo!() }
+pub fn set_temperature_ramp(camera: *mut Camera, temp_ramp: f32) -> Result<(), String> {
+    unsafe {
+        if 0 == gxccd_set_temperature_ramp(camera, temp_ramp) {
+            Ok(())
+        } else {
+            Err("Failed to set temperature ramp".to_string())
+        }
+    }
+}
 
 /// Sets the required read binning.
 /// If the camera does not support binning, this function has no effect.
-pub fn set_binning(camera: *mut Camera, x: i32, y: i32) -> Result<(), String> { todo!() }
+pub fn set_binning(camera: *mut Camera, x: i32, y: i32) -> Result<(), String> {
+    unsafe {
+        if 0 == gxccd_set_binning(camera, x, y) {
+            Ok(())
+        } else {
+            Err("Failed to set binning".to_string())
+        }
+    }
+}
 
 /// If the camera is equipped with preflash electronics, this function sets it.
 /// "preflash_time" defines time for which the preflash LED inside the camera is
@@ -556,7 +598,15 @@ pub fn set_binning(camera: *mut Camera, x: i32, y: i32) -> Result<(), String> { 
 /// Gx series of cameras typically need less than 1 second to completely
 /// saturate the chip ("preflash_time"). Number of subsequent clears should be
 /// at last 2, but more than 4 or 5 clears is not useful, too.
-pub fn set_preflash(camera: *mut Camera, preflash_time: f64, clear_num: i32) -> Result<(), String> { todo!() }
+pub fn set_preflash(camera: *mut Camera, preflash_time: f64, clear_num: i32) -> Result<(), String> {
+    unsafe {
+        if 0 == gxccd_set_preflash(camera, preflash_time, clear_num) {
+            Ok(())
+        } else {
+            Err("Failed to set preflash".to_string())
+        }
+    }
+}
 
 /// Starts new exposure.
 /// "exp_time" is the required exposure time in seconds. "use_shutter" parameter
@@ -617,7 +667,7 @@ pub fn start_exposure_trigger(camera: *mut Camera, exp_time: f64, use_shutter: b
 /// the user will call gxccd_read_image() later or the image should be discarded.
 pub fn abort_exposure(camera: *mut Camera, download: bool) -> Result<(), String> {
     unsafe {
-        if let 0 = gxccd_abort_exposure(camera, download) {
+        if 0 == gxccd_abort_exposure(camera, download) {
             Ok(())
         } else {
             Err("Failed to abort exposure".to_string())
@@ -748,7 +798,7 @@ pub fn set_read_mode(camera: *mut Camera, mode: i32) -> Result<(), String> {
 /// gxccd_get_integer_parameter with index GIP_MAX_GAIN.
 pub fn set_gain(camera: *mut Camera, gain: u16) -> Result<(), String> { 
     unsafe {
-        if let 0 = gxccd_set_gain(camera, gain) {
+        if 0 == gxccd_set_gain(camera, gain) {
             Ok(())
         } else {
             Err("Failed to set gain".to_string())
@@ -769,7 +819,7 @@ pub fn convert_gain(camera: *mut Camera, gain: u16) -> Result<Gain, String> {
     let mut db: c_double = 0.0;
     let mut times: c_double = 0.0;
     unsafe {
-        if let 0 = gxccd_convert_gain(camera, gain, &mut db, &mut times) {
+        if 0 == gxccd_convert_gain(camera, gain, &mut db, &mut times) {
             Ok(Gain { db: db as f64, times: times as f64 })
         } else {
             Err("Failed to convert gain".to_string())
@@ -777,6 +827,11 @@ pub fn convert_gain(camera: *mut Camera, gain: u16) -> Result<Gain, String> {
     }
 }
 
+pub struct Filter {
+    pub name: String,
+    pub color: u32,
+    pub offset: i32,
+}
 /// Enumerates all filters provided by the camera.
 /// This enumeration does not use any callback, by the caller passes index
 /// beginning with 0 and repeats the call with incremented index until the call
@@ -789,16 +844,48 @@ pub fn convert_gain(camera: *mut Camera, gain: u16) -> Result<Gain, String> {
 /// Units of the "offset" can be micrometers or arbitrary focuser specific units
 /// (steps). If the units used are micrometers, driver returns true from
 /// gxccd_get_boolean_parameter() with GBP_MICROMETER_FILTER_OFFSETS "index".
-fn enumerate_filters(camera: *mut Camera, index: c_int, buf: *mut c_char, size: size_t, color: *mut u32, offset: *mut c_int) -> Result<(), String> { todo!() }
+pub fn enumerate_filters(camera: *mut Camera, index: i32) -> Result<Filter, String> {
+    let mut buf = vec![0 as c_char; 256];
+    let mut color: u32 = 0;
+    let mut offset: c_int = 0;
+    unsafe {
+        if 0 == gxccd_enumerate_filters(camera, index, buf.as_mut_ptr(), buf.len(), &mut color, &mut offset) {
+            Ok(Filter {
+                name: CStr::from_ptr(buf.as_ptr()).to_string_lossy().into_owned(),
+                color,
+                offset,
+            })
+        } else {
+            Err("Failed to enum filters".to_string())
+        }
+    }
+}
 
 /// Sets the required filter.
 /// If the camera is not equipped with filter wheel, this function has no effect.
-fn set_filter(camera: *mut Camera, index: c_int) -> Result<(), String> { todo!() }
+pub fn set_filter(camera: *mut Camera, index: i32) -> Result<(), String> {
+    unsafe {
+        if 0 == gxccd_set_filter(camera, index) {
+            Ok(())
+        } else {
+            Err("unable to set filter".to_string())
+        }
+    }
+}
 
 /// Reinitializes camera filter wheel.
 /// If parameter "num_filter" is not NULL, it will contain the number of detected
 /// filters or 0 in case of error (or camera without filter wheel).
-fn reinit_filter_wheel(camera: *mut Camera, num_filters: *mut c_int) -> Result<(), String> { todo!() }
+pub fn reinit_filter_wheel(camera: *mut Camera) -> Result<i32, String> {
+    let mut num_filters: c_int = 0;
+    unsafe {
+        if 0 == gxccd_reinit_filter_wheel(camera, &mut num_filters) {
+            Ok(num_filters)
+        } else {
+            Err("Unable to reinit filter wheel".to_string())
+        }
+    }
+}
 
 /// If the camera is equipped with cooling fan and allows its control,
 /// this function sets the fan rotation speed.
@@ -806,7 +893,15 @@ fn reinit_filter_wheel(camera: *mut Camera, num_filters: *mut c_int) -> Result<(
 /// gxccd_get_integer_parameter() call with GIP_MAX_FAN "index".
 /// If the particular camera supports only on/off switching, the maximum value
 /// should be 1 (fan on), while value 0 means fan off.
-fn set_fan(camera: *mut Camera, speed: u8) -> Result<(), String> { todo!() }
+pub fn set_fan(camera: *mut Camera, speed: u8) -> Result<(), String> {
+    unsafe {
+        if 0 == gxccd_set_fan(camera, speed) {
+            Ok(())
+        } else {
+            Err("Failed to set fan speed".to_string())
+        }
+    }
+}
 
 /// If the camera is equipped with chip cold chamber front window heater
 /// and allows its control, this function sets heating intensity.
@@ -814,7 +909,15 @@ fn set_fan(camera: *mut Camera, speed: u8) -> Result<(), String> { todo!() }
 /// gxccd_get_integer_parameter() call with GIP_MAX_WINDOW_HEATING "index".
 /// If the particular camera supports only on/off switching, the maximum value
 /// should be 1 (heating on), while value 0 means heating off.
-fn set_window_heating(camera: *mut Camera, heating: u8) -> Result<(), String> { todo!() }
+pub fn set_window_heating(camera: *mut Camera, heating: u8) -> Result<(), String> {
+    unsafe {
+        if 0 == gxccd_set_window_heating(camera, heating) {
+            Ok(())
+        } else {
+            Err("Failed to set window heating".to_string())
+        }
+    }
+}
 
 /// Instructs the camera to initiate telescope movement in the R.A. and/or Dec.
 /// axis for the defined period of time (in milliseconds).
@@ -822,19 +925,76 @@ fn set_window_heating(camera: *mut Camera, heating: u8) -> Result<(), String> { 
 /// coordinate. The maximum length is approx 32.7 seconds.
 /// If the camera is not equipped with autoguider port, this function has no
 /// effect.
-fn move_telescope(camera: *mut Camera, ra_duration_ms: i16, dec_duration_ms: i16) -> Result<(), String> { todo!() }
+pub fn move_telescope(camera: *mut Camera, ra_duration_ms: i16, dec_duration_ms: i16) -> Result<(), String> {
+    unsafe {
+        if 0 == gxccd_move_telescope(camera, ra_duration_ms, dec_duration_ms) {
+            Ok(())
+        } else {
+            Err("Failed to move telescope".to_string())
+        }
+    }
+}
 
 /// Sets "moving" to true if the movement started with gxccd_move_telescope()
 /// call is still in progress.
-fn move_in_progress(camera: *mut Camera, moving: *mut bool) -> Result<(), String> { todo!() }
+pub fn move_in_progress(camera: *mut Camera) -> Result<bool, String> {
+    let mut moving: bool = false;
+    unsafe {
+        if 0 == gxccd_move_in_progress(camera, &mut moving) {
+            Ok(moving)
+        } else {
+            Err("Failed to check moving status".to_string())
+        }
+    }
+}
 
+#[derive(Debug,Clone)]
+pub struct TimeStamp {
+    pub year: i32,
+    pub month: i32,
+    pub day: i32,
+    pub hour: i32,
+    pub minute: i32,
+    pub second: f64,
+}
 /// Returns actual date and exact time of the last image exposure.
 /// Date and time is obtained from GPS and is in UTC time standard.
 /// Subsecond precision is additionally achieved with internal camera counter.
 /// For this function to work, the camera must contain a GPS receiver module and
 /// it must be synchronized with at least 5 satellites. You can call
-/// "gxccd_get_gps_data()" to obtain GPS status.
-fn get_image_time_stamp(camera: *mut Camera, year: *mut c_int,month: *mut c_int, day: *mut c_int, hour: *mut c_int, minute: *mut c_int, second: *mut c_double) -> Result<(), String> { todo!() }
+/// "get_gps_data()" to obtain GPS status.
+pub fn get_image_time_stamp(camera: *mut Camera) -> Result<TimeStamp, String> {
+    let mut year: c_int = 0;
+    let mut month: c_int = 0;
+    let mut day: c_int = 0;
+    let mut hour: c_int = 0;
+    let mut minute: c_int = 0;
+    let mut second: c_double = 0.0;
+    unsafe {
+        if 0 == gxccd_get_image_time_stamp(camera, &mut year, &mut month, &mut day, &mut hour, &mut minute, &mut second) {
+            Ok(TimeStamp{
+                year,
+                month,
+                day,
+                hour,
+                minute,
+                second,
+            })
+        } else {
+            Err("Failed to get image time stamp".to_string())
+        }
+    }
+}
+
+#[derive(Debug,Clone)]
+pub struct GPSData {
+    pub lat: f64,
+    pub lon: f64,
+    pub msl: f64,
+    pub timestamp: TimeStamp,
+    pub satellites: u32,
+    pub fix: bool,
+}
 
 /// Returns actual date, exact time, latitude, longitude, mean sea level and
 /// status of GPS module. Date and time is in UTC time standard. Subsecond precision
@@ -842,11 +1002,48 @@ fn get_image_time_stamp(camera: *mut Camera, year: *mut c_int,month: *mut c_int,
 /// the camera must contain a GPS receiver module. Position information needs at
 /// least 3 satellites, date and time is returned after synchronization with 5
 /// satellites.
-fn get_gps_data(camera: *mut Camera, lat: *mut c_double, lon: *mut c_double, msl: *mut c_double,
-                year: *mut c_int, month: *mut c_int, day: *mut c_int, hour: *mut c_int, minute: *mut c_int,
-                second: *mut c_double, satellites: *mut c_uint, fix: *mut bool) -> Result<(), String> { todo!() }
+pub fn get_gps_data(camera: *mut Camera) -> Result<GPSData, String> {
+    let mut lat: c_double = 0.0;
+    let mut lon: c_double = 0.0;
+    let mut msl: c_double = 0.0;
+    let mut year: c_int = 0;
+    let mut month: c_int = 0;
+    let mut day: c_int = 0;
+    let mut hour: c_int = 0;
+    let mut minute: c_int = 0;
+    let mut second: c_double = 0.0;
+    let mut satellites: c_uint = 0;
+    let mut fix: bool = false;
+    unsafe {
+        if 0 == gxccd_get_gps_data(camera, &mut lat, &mut lon, &mut msl, &mut year, &mut month, &mut day, &mut hour, &mut minute, &mut second, &mut satellites, &mut fix) {
+            Ok(GPSData {
+                lat,
+                lon,
+                msl,
+                timestamp: TimeStamp {
+                    year,
+                    month,
+                    day,
+                    hour,
+                    minute,
+                    second,
+                },
+                satellites,
+                fix,
+            })
+        } else {
+            Err("Failed to get gps data".to_string())
+        }
+    }
+}
 
 /// If any call fails (returns -1), this function returns failure description
 /// in parameter buf.
 /// The caller must specify the size of the buffer in parameter "size".
-fn get_last_error(camera: *mut Camera) -> Option<String> { todo!() }
+pub fn get_last_error(camera: *mut Camera) -> String {
+    let mut buf = vec![0 as c_char; 256];
+    unsafe {
+        gxccd_get_last_error(camera, buf.as_mut_ptr(), buf.len());
+        CStr::from_ptr(buf.as_ptr()).to_string_lossy().into_owned()
+    }
+}
