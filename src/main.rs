@@ -1,44 +1,41 @@
+use std::{path::PathBuf, str::FromStr};
+
 use gxccd::*;
+use clap::{builder::Str, Parser, Subcommand};
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    //#[command(subcommand)]
+    //command: Commands,
+    #[clap(alias = "e")]
+    exposure: Option<f64>,
+    #[clap(alias = "f")]
+    filename: Option<String>,
+}
+
+/*#[derive(Subcommand, Debug, Clone)]
+enum Commands {
+    Snap {
+        nframes: Option<u32>,
+    },
+}*/
 
 fn main() -> Result<(), String> {
+    let args = Args::parse();
+    let exposure: f64 = match &args.exposure {
+        Some(x) => *x,
+        None => 1.0,
+    };
+    let filename: PathBuf = match &args.filename {
+        Some(fname) => PathBuf::from_str(&fname).or_else(|e| Err(e.to_string()))?,
+        None => PathBuf::from_str("./out.fits").or_else(|e| Err(e.to_string()))?,
+    };
     let camera = Camera::new()?;
-
-    let param = camera.get_string_parameter(StringParams::CameraDescription)?;
-    eprintln!("Camera description: {}", param);
-
-    let major = camera.get_integer_parameter(IntegerParams::FirmwareMajor)?;
-    let minor = camera.get_integer_parameter(IntegerParams::FirmwareMinor)?;
-    let build = camera.get_integer_parameter(IntegerParams::FirmwareBuild)?;
-    eprintln!("Camera FW version: {}.{}.{}", major, minor, build);
-
-    let temp = camera.get_value(Values::ChipTemperature)?;
-    eprintln!("Camera chip temp: {:0.2} °C", temp);
-
-    let voltage = camera.get_value(Values::SupplyVoltage)?;
-    eprintln!("Camera supply voltage: {:0.2} V", voltage);
-    
-    let mut i = 0;
-    while let Ok(result) = camera.enumerate_read_modes(i) {
-        eprintln!("Read mode #{}: {}", i, result);
-        i += 1;
-    }
-
-    eprintln!("taking dark frames");
-    camera.set_read_mode(3)?;
-    let exp_time: f64 = 2.0;
-    for i in 0..10 {
-        eprintln!("taking frame {}", i);
-        let primary_hdu = take_full_frame(&camera, &exp_time, false)?;
-        fitrs::Fits::create(format!("./dark_{:03}.fits",i), primary_hdu).map_err(|e| e.to_string())?;
-    }    
     eprintln!("taking light frames");
     camera.set_read_mode(3)?;
-    let exp_time: f64 = 2.0;
-    for i in 0..10 {
-        eprintln!("taking frame {}", i);
-        let primary_hdu = take_full_frame(&camera, &exp_time, true)?;
-        fitrs::Fits::create(format!("./light_{:03}.fits",i), primary_hdu).map_err(|e| e.to_string())?;
-    }    
+    let primary_hdu = take_full_frame(&camera, &exposure, true)?;
+    fitrs::Fits::create(filename, primary_hdu).map_err(|e| e.to_string())?;
     Ok(())
 }
 

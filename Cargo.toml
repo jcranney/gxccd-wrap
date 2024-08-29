@@ -12,5 +12,6 @@ repository = "https://github.com/jcranney/gxccd-wrap"
 include = ["lib/*"]
 
 [dependencies]
+clap = { version = "4.5.16", features = ["derive"] }
 fitrs = "0.5.0"
 libc = "0.2.158"
