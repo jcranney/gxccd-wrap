@@ -49,6 +49,12 @@ pub struct Camera {
     _camera: *mut wrap::Camera,
 }
 
+impl Drop for Camera {
+    fn drop(&mut self) {
+        self.abort_exposure(false).unwrap();
+    }
+}
+
 impl Camera {
     /// Find camera and connect to it.
     /// 
@@ -336,6 +342,7 @@ impl Camera {
 
 /// Direct wrappers of C functions
 pub mod wrap {
+    use enum_iterator::Sequence;
     use libc::{c_char, c_double, c_float, c_int, c_uint, c_void, size_t};
     use std::ffi::CStr;
     use std::path::PathBuf;
@@ -348,7 +355,7 @@ pub mod wrap {
     }
 
     /// Standard [get_boolean_parameter()] parameters
-    #[derive(Debug)]
+    #[derive(Debug, Sequence)]
     pub enum BooleanParams {
         Connected = 0,              // true if camera currently connected
         SubFrame,                  // true if camera supports sub-frame read
@@ -379,7 +386,7 @@ pub mod wrap {
     }
 
     /// Standard [get_integer_parameter()] parameters
-    #[derive(Debug)]
+    #[derive(Debug, Sequence)]
     pub enum IntegerParams {
         CameraId = 0,          // Identifier of the current camera
         ChipW,                 // Chip width in pixels
@@ -413,7 +420,7 @@ pub mod wrap {
 
 
     /// Standard [get_string_parameter()] parameters 
-    #[derive(Debug)]
+    #[derive(Debug, Sequence)]
     pub enum StringParams {
         CameraDescription = 0, // Camera description 
         Manufacturer,           // Manufacturer name 
@@ -422,7 +429,7 @@ pub mod wrap {
     }
 
     /// Standard [get_value()] values
-    #[derive(Debug)]
+    #[derive(Debug, Sequence)]
     pub enum Values {
         ChipTemperature = 0,     // Current temperature of the chip in deg. Celsius
         HotTemperature,          // Current temperature of the cooler hot side
@@ -816,7 +823,7 @@ pub mod wrap {
             if 0 == gxccd_get_boolean_parameter(camera, param as c_int, &mut value) {
                 Ok(value)
             } else {
-                Err("Failed to retrieve integer parameter".to_string())
+                Err("Failed to retrieve boolean parameter".to_string())
             }
         }
     }
@@ -1134,6 +1141,7 @@ pub mod wrap {
     }
 
     /// Filter parameters retrieved from [enumerate_filters()] function
+    #[derive(Debug)]
     pub struct Filter {
         pub name: String,
         pub color: u32,

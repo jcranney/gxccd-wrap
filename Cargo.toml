@@ -1,8 +1,8 @@
 [package]
 name = "gxccd"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
-description = "Rust wrapper around gxccd C library"
+description = "Rust wrapper and CLI tool around gxccd C library"
 license = "MIT"
 authors = ["Jesse Cranney <jesse.cranney@anu.edu.au>"]
 readme = "README.md"
@@ -12,5 +12,7 @@ repository = "https://github.com/jcranney/gxccd-wrap"
 include = ["lib/*"]
 
 [dependencies]
+clap = { version = "4.5.41", features = ["derive"] }
+enum-iterator = "2.1.0"
 fitrs = "0.5.0"
-libc = "0.2.158"
+libc = "0.2.174"
