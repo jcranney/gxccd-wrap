@@ -12,7 +12,14 @@ This will build the main `gxccd` rust program, which connects to a camera, print
 $ gxccd
 Error: "Cannot find USB camera"
 ```
+
+You may also see this error if you don't have the correct permissions on your USB device. Something like the following might clear that up:
+```bash
+sudo chmod -R 777 /dev/bus/usb
+```
+
 If you get some other large output regarding libraries, you probably need to configure your [dependencies](#dependencies). If you get something else entirely, please raise an issue.
+
 
 
 ## Dependencies
