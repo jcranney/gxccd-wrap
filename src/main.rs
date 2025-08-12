@@ -11,7 +11,7 @@ struct Args {
     #[arg(short, long, default_value_t = 1.0)]
     exp_time: f64,
     /// prefix to save for files, e.g., first frame: "<prefix>000.fits"
-    #[arg(short, long, default_value_t = ("frame_".to_string()))]
+    #[arg(short, long, default_value = "frame_")]
     prefix: String,
     /// configure non-default camera read mode
     #[arg(short, long, )]
